@@ -1,6 +1,6 @@
 /* Arduino Rotator Controller
 
-   Anthony Good
+   Anthony Good - Mark Drayton's Edit
    K3NG
    anthony.good@gmail.com
   
@@ -14072,6 +14072,3 @@ void service_autopark(){
 
 
 // that's all, folks !
-
-
-
