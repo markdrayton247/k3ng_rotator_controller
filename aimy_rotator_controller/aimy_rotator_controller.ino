@@ -416,7 +416,7 @@
 #include <math.h>
 #include <avr/wdt.h>
 
-
+#define SERIAL_PORT_CLASS HardwareSerial
 #define SERIAL_PORT_CLASS HardwareSerial
 #include "rotator_features.h"      
   
@@ -562,7 +562,8 @@
 #endif
 
 #include "rotator_language.h"
-#include "rotator_debug.h"
+
+// #include "rotator_debug.h"
 
 
 /*----------------------- variables -------------------------------------*/
@@ -956,7 +957,7 @@ byte current_az_speed_voltage = 0;
   float el_a2_encoder = 0;
 #endif //FEATURE_EL_POSITION_A2_ABSOLUTE_ENCODER 
 
-DebugClass debug;
+// DebugClass debug;
 
 #if defined(FEATURE_LCD_DISPLAY)
   K3NGdisplay k3ngdisplay(LCD_COLUMNS,LCD_ROWS,LCD_UPDATE_TIME);
@@ -1148,9 +1149,12 @@ void loop() {
     #endif // FEATURE_AZ_PRESET_ENCODER
   #endif // ndef FEATURE_REMOTE_UNIT_SLAVE
 
+/*
   #ifdef DEBUG_DUMP
     output_debug();
   #endif //DEBUG_DUMP
+
+*/
 
   #ifdef OPTION_MORE_SERIAL_CHECKS
     check_serial();
@@ -5340,486 +5344,20 @@ void read_azimuth(byte force_read){
 
 // --------------------------------------------------------------
 
-void output_debug(){
 
-  #ifdef DEBUG_DUMP
 
-    char tempstring[32] = "";
 
-    #if defined(FEATURE_REMOTE_UNIT_SLAVE) || defined(CONTROL_PROTOCOL_EMULATION) || defined(UNDER_DEVELOPMENT_REMOTE_UNIT_COMMANDS)
 
-      if (((millis() - last_debug_output_time) >= 3000) && (debug_mode)) {
 
-        #if defined(DEBUG_GPS_SERIAL)
-          debug.println("");
-        #endif //DEBUG_GPS_SERIAL
 
-        //port_flush();
 
-        debug.print("debug: \t");
-        debug.print(CODE_VERSION);
-        #ifdef HARDWARE_WB6KCN
-          debug.print(" HARDWARE_WB6KCN");
-        #endif
-        #ifdef HARDWARE_M0UPU
-          debug.print(" HARDWARE_M0UPU");
-        #endif    
-        #ifdef HARDWARE_EA4TX_ARS_USB
-          debug.print(" HARDWARE_EA4TX_ARS_USB");
-        #endif      
-        debug.print("\t\t");
 
-        #ifdef FEATURE_CLOCK
-          update_time();
-          if (configuration.clock_timezone_offset != 0){
-            sprintf(tempstring, "%s", timezone_modified_clock_string());
-            debug.print(tempstring);
-            debug.print("UTC");
-            if (configuration.clock_timezone_offset > 0){
-              debug.print("+");
-            }
-            if (configuration.clock_timezone_offset == int(configuration.clock_timezone_offset)){
-              debug.print(int(configuration.clock_timezone_offset));
-            } else {
 
-              debug.print(configuration.clock_timezone_offset);
-            }
-            debug.print("\t");
-            sprintf(tempstring, "%s", zulu_clock_string());
-            debug.print(tempstring);
-          } else {
-            sprintf(tempstring, "%s", zulu_clock_string());
-            debug.print(tempstring);
-          }       
-        #else // FEATURE_CLOCK
-          dtostrf((millis() / 1000),0,0,tempstring);
-          debug.print(tempstring);
-        #endif // FEATURE_CLOCK
 
-        #if defined(FEATURE_GPS) || defined(FEATURE_RTC) || (defined(FEATURE_CLOCK) && defined(OPTION_SYNC_MASTER_CLOCK_TO_SLAVE))
-          debug.print("\t");
-          debug.print(clock_status_string());
-        #endif // defined(FEATURE_GPS) || defined(FEATURE_RTC) || (defined(FEATURE_CLOCK) && defined(OPTION_SYNC_MASTER_CLOCK_TO_SLAVE))
 
-        #if defined(FEATURE_MOON_TRACKING) || defined(FEATURE_SUN_TRACKING)
-          debug.print("\t");
-          sprintf(tempstring, "%s", coordinate_string());
-          debug.print(tempstring); 
-          debug.print(" ");
-          debug.print(coordinates_to_maidenhead(latitude,longitude));
-        #endif
 
-        debug.print("\t\t");
 
 
-        #ifdef FEATURE_YAESU_EMULATION
-          debug.print("GS-232");
-          #ifdef OPTION_GS_232B_EMULATION
-            debug.print("B");
-          #else
-            debug.print("A");
-          #endif
-        #endif // FEATURE_YAESU_EMULATION
-
-        #ifdef FEATURE_EASYCOM_EMULATION
-          debug.print("EASYCOM");
-        #endif // FEATURE_EASYCOM_EMULATION            
-
-        #ifdef FEATURE_DCU_1_EMULATION
-          debug.print("DCU-1");
-        #endif // FEATURE_DCU_1_EMULATION  
-
-        #ifdef FEATURE_PARK
-          switch (park_status) {
-            case NOT_PARKED: debug.print("\tNOT_PARKED"); break;
-            case PARK_INITIATED: debug.print("\tPARK_INITIATED"); break;
-            case PARKED: debug.print("\tPARKED"); break;
-          }
-        #endif // FEATURE_PARK
-
-        debug.println("");
-
-        debug.print("\tAZ:");
-        switch (az_state) {
-          case IDLE: debug.print("IDLE"); break;
-          #ifndef HARDWARE_EA4TX_ARS_USB
-            case SLOW_START_CW: debug.print("SLOW_START_CW"); break;
-            case SLOW_START_CCW: debug.print("SLOW_START_CCW"); break;
-          #endif //ifndef HARDWARE_EA4TX_ARS_USB
-          case NORMAL_CW: debug.print("NORMAL_CW"); break;
-          case NORMAL_CCW: debug.print("NORMAL_CCW"); break;
-          #ifndef HARDWARE_EA4TX_ARS_USB
-            case SLOW_DOWN_CW: debug.print("SLOW_DOWN_CW"); break;
-            case SLOW_DOWN_CCW: debug.print("SLOW_DOWN_CCW"); break;
-            case INITIALIZE_SLOW_START_CW: debug.print("INITIALIZE_SLOW_START_CW"); break;
-            case INITIALIZE_SLOW_START_CCW: debug.print("INITIALIZE_SLOW_START_CCW"); break;
-            case INITIALIZE_TIMED_SLOW_DOWN_CW: debug.print("INITIALIZE_TIMED_SLOW_DOWN_CW"); break;
-            case INITIALIZE_TIMED_SLOW_DOWN_CCW: debug.print("INITIALIZE_TIMED_SLOW_DOWN_CCW"); break;
-            case TIMED_SLOW_DOWN_CW: debug.print("TIMED_SLOW_DOWN_CW"); break;
-            case TIMED_SLOW_DOWN_CCW: debug.print("TIMED_SLOW_DOWN_CCW"); break;
-            case INITIALIZE_DIR_CHANGE_TO_CW: debug.print("INITIALIZE_DIR_CHANGE_TO_CW"); break;
-            case INITIALIZE_DIR_CHANGE_TO_CCW: debug.print("INITIALIZE_DIR_CHANGE_TO_CCW"); break;
-            case INITIALIZE_NORMAL_CW: debug.print("INITIALIZE_NORMAL_CW"); break;
-            case INITIALIZE_NORMAL_CCW: debug.print("INITIALIZE_NORMAL_CCW"); break; 
-          #endif //ifndef HARDWARE_EA4TX_ARS_USB     
-        }
-
-        debug.print("  Q:");
-        switch (az_request_queue_state) {
-          case NONE: debug.print("-"); break;
-          case IN_QUEUE: debug.print("IN_QUEUE"); break;
-          case IN_PROGRESS_TIMED: debug.print("IN_PROGRESS_TIMED"); break;
-          case IN_PROGRESS_TO_TARGET: debug.print("IN_PROGRESS_TO_TARGET"); break;
-        }
-
-        debug.print("  AZ:");
-        debug.print((azimuth / LCD_HEADING_MULTIPLIER), LCD_DECIMAL_PLACES);
-        debug.print("  AZ_raw:");
-        debug.print((raw_azimuth / LCD_HEADING_MULTIPLIER), LCD_DECIMAL_PLACES);
-        //debug.print(")");
-
-
-        if (az_state != IDLE) {
-          debug.print("  Target:");
-          debug.print((target_azimuth / LCD_HEADING_MULTIPLIER), LCD_DECIMAL_PLACES);
-       
-
-          debug.print("  Target_raw: ");
-
-          debug.print((target_raw_azimuth / LCD_HEADING_MULTIPLIER), LCD_DECIMAL_PLACES);
-          //debug.print(")");
-
-          debug.print("  Secs_left:");
-          debug.print((OPERATION_TIMEOUT - (millis() - az_last_rotate_initiation)) / 1000);
-        }
-
-        #ifdef FEATURE_AZ_POSITION_POTENTIOMETER
-          debug.print("  Analog:");
-          dtostrf(analog_az,0,0,tempstring);
-          debug.print(tempstring);
-          debug.print("  Range:");
-          dtostrf(configuration.analog_az_full_ccw,0,0,tempstring);
-          debug.print(tempstring);
-          debug.print("-");
-          dtostrf(configuration.analog_az_full_cw,0,0,tempstring);
-          debug.print(tempstring);
-          //debug.print(") ");
-        #endif // FEATURE_AZ_POSITION_POTENTIOMETER
-
-        debug.print(F("  Start:"));
-        debug.print(azimuth_starting_point);
-        debug.print(F("  Rotation_Capability:"));
-        debug.print(azimuth_rotation_capability,0);
-        debug.print(F("  Raw_Az_Range:"));
-        debug.print(azimuth_starting_point);
-        debug.print("-");
-        debug.print((azimuth_starting_point+azimuth_rotation_capability),0);
-        //debug.println("");
-        //debug.print("\t");
-
-        #ifndef HARDWARE_EA4TX_ARS_USB
-          debug.print("  AZ_Speed_Norm:");
-          debug.print(normal_az_speed_voltage);
-          debug.print("  Current:");
-          debug.print(current_az_speed_voltage);
-          if (az_speed_pot) {
-            debug.print("  AZ_Speed_Pot:");
-            debug.print(analogReadEnhanced(az_speed_pot));
-          }
-          if (az_preset_pot) {
-            debug.print(F("  AZ_Preset_Pot_Analog:"));
-            debug.print(analogReadEnhanced(az_preset_pot));
-            debug.print(F("  AZ_Preset_Pot_Setting: "));
-            dtostrf((map(analogReadEnhanced(az_preset_pot), AZ_PRESET_POT_FULL_CW, AZ_PRESET_POT_FULL_CCW, AZ_PRESET_POT_FULL_CW_MAP, AZ_PRESET_POT_FULL_CCW_MAP)),0,0,tempstring);
-            debug.print(tempstring);
-          }
-          debug.print("  Offset:");
-          dtostrf(configuration.azimuth_offset,0,2,tempstring);
-          debug.print(tempstring);
-        #endif // ndef HARDWARE_EA4TX_ARS_USB
-        debug.println("");
-
-   
-
-        #ifdef FEATURE_ELEVATION_CONTROL
-          debug.print("\tEL:");
-          switch (el_state) {
-            case IDLE: debug.print("IDLE"); break;
-            #ifndef HARDWARE_EA4TX_ARS_USB
-              case SLOW_START_UP: debug.print("SLOW_START_UP"); break;
-              case SLOW_START_DOWN: debug.print("SLOW_START_DOWN"); break;
-            #endif //ifndef HARDWARE_EA4TX_ARS_USB
-            case NORMAL_UP: debug.print("NORMAL_UP"); break;
-            case NORMAL_DOWN: debug.print("NORMAL_DOWN"); break;
-            #ifndef HARDWARE_EA4TX_ARS_USB
-              case SLOW_DOWN_DOWN: debug.print("SLOW_DOWN_DOWN"); break;
-              case SLOW_DOWN_UP: debug.print("SLOW_DOWN_UP"); break;
-              case TIMED_SLOW_DOWN_UP: debug.print("TIMED_SLOW_DOWN_UP"); break;
-              case TIMED_SLOW_DOWN_DOWN: debug.print("TIMED_SLOW_DOWN_DOWN"); break;
-            #endif //ifndef HARDWARE_EA4TX_ARS_USB
-          }
-
-          debug.print("  Q:");
-          switch (el_request_queue_state) {
-            case NONE: debug.print("-"); break;
-            case IN_QUEUE: debug.print("IN_QUEUE"); break;
-            case IN_PROGRESS_TIMED: debug.print("IN_PROGRESS_TIMED"); break;
-            case IN_PROGRESS_TO_TARGET: debug.print("IN_PROGRESS_TO_TARGET"); break;
-          }
-          debug.print("  EL:");
-          dtostrf(elevation / LCD_HEADING_MULTIPLIER, 0, LCD_DECIMAL_PLACES,tempstring);
-          debug.print(tempstring);
-          if (el_state != IDLE) {
-            debug.print("  Target:");
-            dtostrf(target_elevation / LCD_HEADING_MULTIPLIER, 0, LCD_DECIMAL_PLACES,tempstring);
-            debug.print(tempstring);
-          }
-
-          #ifdef FEATURE_EL_POSITION_POTENTIOMETER
-            debug.print("  EL_Analog:");
-            dtostrf(analog_el,0,0,tempstring);
-            debug.print(tempstring);
-            debug.print("  Range:");
-            dtostrf(configuration.analog_el_0_degrees,0,0,tempstring);
-            debug.print(tempstring);
-            debug.print("-");
-            dtostrf(configuration.analog_el_max_elevation,0,0,tempstring);
-            debug.print(tempstring);
-            //debug.print(") ");
-          #endif // FEATURE_EL_POSITION_POTENTIOMETER
-         
-          #ifndef HARDWARE_EA4TX_ARS_USB
-            debug.print("  EL_Speed_Norm:");
-            debug.print(normal_el_speed_voltage);
-
-
-            debug.print("  Current:");
-            debug.print(current_el_speed_voltage);
-
-            debug.print("  Offset:");
-            debug.print(configuration.elevation_offset, 2);
-          #endif //ifndef HARDWARE_EA4TX_ARS_USB
-          debug.println("");
-        #endif // FEATURE_ELEVATION_CONTROL
-
-        //port_flush();
-
-        #ifdef FEATURE_TIMED_BUFFER
-          if (timed_buffer_status != EMPTY) {
-            debug.print("  Timed_interval_buff:");
-            switch (timed_buffer_status) {
-              // case EMPTY: debug.print("EMPTY"); break;
-              case LOADED_AZIMUTHS: debug.print("LOADED_AZIMUTHS"); break;
-              case RUNNING_AZIMUTHS: debug.print("RUNNING_AZIMUTHS"); break;
-              #ifdef FEATURE_ELEVATION_CONTROL
-                case LOADED_AZIMUTHS_ELEVATIONS: debug.print("LOADED_AZIMUTHS_ELEVATIONS"); break;
-                case RUNNING_AZIMUTHS_ELEVATIONS: debug.print("RUNNING_AZIMUTHS_ELEVATIONS"); break;
-              #endif
-            }
-
-            debug.print("  Interval_secs:");
-            debug.print(timed_buffer_interval_value_seconds);
-            debug.print("  Entries:");
-            debug.print(timed_buffer_number_entries_loaded);
-            debug.print("  Entry_ptr:");
-            debug.print(timed_buffer_entry_pointer);
-            debug.print("  Secs_since_last_action:");
-            debug.print((millis() - last_timed_buffer_action_time) / 1000);
-
-            if (timed_buffer_number_entries_loaded > 0) {
-              for (int x = 0; x < timed_buffer_number_entries_loaded; x++) {
-                debug.print(x + 1);
-                debug.print("\t:");
-                debug.print(timed_buffer_azimuths[x] / HEADING_MULTIPLIER);
-              #ifdef FEATURE_ELEVATION_CONTROL
-                debug.print("\t- ");
-                debug.print(timed_buffer_elevations[x] / HEADING_MULTIPLIER);
-              #endif
-                debug.print("\n");
-              }
-              debug.println("");
-            }
-
-          } // if (timed_buffer_status != EMPTY)
-        #endif // FEATURE_TIMED_BUFFER
-
-
-        #if defined(FEATURE_MASTER_WITH_SERIAL_SLAVE) || defined(FEATURE_MASTER_WITH_ETHERNET_SLAVE)
-          /*debug.print("\tRemote Slave: Command: ");
-          debug.print(remote_unit_command_submitted);*/
-          debug.print("\tRemote_Slave: Good:");
-          debug.print(remote_unit_good_results,0);
-          debug.print(" Bad:");
-          debug.print(remote_unit_bad_results);
-          /*debug.print(" Index: ");
-          debug.print(remote_unit_port_buffer_index);*/
-          debug.print(" CmdTouts:");
-          debug.print(remote_unit_command_timeouts);
-          debug.print(" BuffTouts:");
-          debug.print(remote_unit_incoming_buffer_timeouts);
-          /*debug.print(" Result: ");
-          debug.print(remote_unit_command_result_float,2);*/
-          debug.println("");
-        #endif // defined(FEATURE_MASTER_WITH_SERIAL_SLAVE) || defined(FEATURE_MASTER_WITH_ETHERNET_SLAVE)
-
-        #if defined(FEATURE_MASTER_WITH_ETHERNET_SLAVE)
-          debug.print("\tEthernet Slave TCP Link State:");
-          switch(ethernetslavelinkclient0_state){
-            case ETHERNET_SLAVE_DISCONNECTED: debug.print("DIS");
-            case ETHERNET_SLAVE_CONNECTED: debug.print("CONNECTED");
-          }
-          debug.print(" Reconnects:");
-          debug.print(ethernet_slave_reconnects);  
-          debug.println("");
-        #endif // defined(FEATURE_MASTER_WITH_ETHERNET_SLAVE)  
-
-        #ifdef DEBUG_POSITION_PULSE_INPUT
-          static unsigned long last_pulse_count_time = 0;
-          static unsigned long last_az_pulse_counter = 0;
-          static unsigned long last_el_pulse_counter = 0;
-          debug.print("\tPulse_counters: AZ:");
-          debug.print(az_pulse_counter);
-          debug.print("  AZ_Ambiguous:");
-          debug.print(az_pulse_counter_ambiguous);
-          debug.print("  EL:");
-          debug.print(el_pulse_counter);
-          debug.print("  EL_Ambiguous:");
-          debug.print(el_pulse_counter_ambiguous);
-          debug.print("  Rate_per_sec: AZ:");
-          debug.print(((az_pulse_counter - last_az_pulse_counter) / ((millis() - last_pulse_count_time) / 1000.0)),2);
-          debug.print("   EL:");
-          debug.print(((el_pulse_counter - last_el_pulse_counter) / ((millis() - last_pulse_count_time) / 1000.0)),2);
-          debug.println("");
-          last_az_pulse_counter = az_pulse_counter;
-          last_el_pulse_counter = el_pulse_counter;
-          last_pulse_count_time = millis();
-        #endif // DEBUG_POSITION_PULSE_INPUT
-
-
-        #if defined(FEATURE_AZ_POSITION_INCREMENTAL_ENCODER) && defined(DEBUG_AZ_POSITION_INCREMENTAL_ENCODER)
-          debug.print("\taz_position_incremental_encoder_interrupt:");
-          debug.print(az_position_incremental_encoder_interrupt);
-          debug.print("  az_incremental_encoder_position:");
-          debug.print(az_incremental_encoder_position,0);
-        #endif // DEBUG_AZ_POSITION_INCREMENTAL_ENCODER
-        #if defined(FEATURE_EL_POSITION_INCREMENTAL_ENCODER) && defined(DEBUG_EL_POSITION_INCREMENTAL_ENCODER)
-          debug.print("\n\tel_position_incremental_encoder_interrupt:");
-          debug.print(el_position_incremental_encoder_interrupt,0);
-          debug.print("  el_incremental_encoder_position: ");
-          debug.print(el_incremental_encoder_position);
-        #endif // DEBUG_EL_POSITION_INCREMENTAL_ENCODER
-        #if (defined(FEATURE_AZ_POSITION_INCREMENTAL_ENCODER) && defined(DEBUG_AZ_POSITION_INCREMENTAL_ENCODER)) || (defined(FEATURE_EL_POSITION_INCREMENTAL_ENCODER) && defined(DEBUG_EL_POSITION_INCREMENTAL_ENCODER))
-          debug.println("");
-        #endif
-
-
-
-
-        #ifdef FEATURE_MOON_TRACKING
-          update_moon_position();
-          debug.print(moon_status_string());
-        #endif // FEATURE_MOON_TRACKING
-
-        #ifdef FEATURE_SUN_TRACKING
-          update_sun_position();
-          debug.print(sun_status_string());
-        #endif // FEATURE_SUN_TRACKING
-
-        #if defined(FEATURE_MOON_TRACKING) || defined(FEATURE_SUN_TRACKING)
-          debug.println("");
-        #endif //defined(FEATURE_MOON_TRACKING) || defined(FEATURE_SUN_TRACKING)
-
-        #ifdef FEATURE_GPS
-          unsigned long gps_chars = 0;
-          unsigned short gps_good_sentences = 0;
-          unsigned short gps_failed_checksum = 0;
-          char gps_temp_string[12] = "";
-          float gps_lat_temp = 0;
-          float gps_long_temp = 0;
-
-          debug.print("\tGPS: satellites:");
-          gps_chars = gps.satellites();
-          //if (gps_chars == 255){gps_chars = 0;}
-          dtostrf(gps_chars,0,0,gps_temp_string);
-          debug.print(gps_temp_string);  
-          unsigned long gps_fix_age_temp = 0;
-          gps.f_get_position(&gps_lat_temp,&gps_long_temp,&gps_fix_age_temp); 
-          debug.print("  lat:");
-          debug.print(gps_lat_temp,4);
-          debug.print("  long:");
-          debug.print(gps_long_temp,4);
-          debug.print("  altitude(m):");
-          debug.print(gps.altitude()/100,0);            
-          debug.print("  fix_age_mS:");
-          dtostrf(gps_fix_age_temp,0,0,gps_temp_string);
-          debug.print(gps_temp_string);   
-          gps.stats(&gps_chars,&gps_good_sentences,&gps_failed_checksum);     
-          debug.print("  data_chars:");
-          dtostrf(gps_chars,0,0,gps_temp_string);
-          debug.print(gps_temp_string);
-          debug.print("  good_sentences:");
-          dtostrf(gps_good_sentences,0,0,gps_temp_string);
-          debug.print(gps_temp_string);    
-          debug.print("  failed_checksum:");
-          dtostrf(gps_failed_checksum,0,0,gps_temp_string);
-          debug.print(gps_temp_string);    
-          debug.println("");
-        #endif //FEATURE_GPS
-
-
-        #ifdef FEATURE_AUTOCORRECT
-          debug.print("\t\tAutocorrect: AZ:");
-          switch(autocorrect_state_az){
-            case AUTOCORRECT_INACTIVE: debug.print("INACTIVE"); break;
-            case AUTOCORRECT_WAITING_AZ: debug.print("AUTOCORRECT_WAITING_AZ: "); debug.print(autocorrect_az,2); break;
-            case AUTOCORRECT_WATCHING_AZ: debug.print("AUTOCORRECT_WATCHING_AZ: "); debug.print(autocorrect_az,2); break;
-          }
-
-          #ifdef FEATURE_ELEVATION_CONTROL
-            debug.print(" EL:");
-            switch(autocorrect_state_el){
-              case AUTOCORRECT_INACTIVE: debug.print("INACTIVE"); break;
-              case AUTOCORRECT_WAITING_EL: debug.print("AUTOCORRECT_WAITING_EL: "); debug.print(autocorrect_el,2); break;
-              case AUTOCORRECT_WATCHING_EL: debug.print("AUTOCORRECT_WATCHING_EL: "); debug.print(autocorrect_el,2); break;
-            }
-          #endif //FEATURE_ELEVATION_CONTROL
-        #endif //DEBUG_AUTOCORRECT
-
-        if ((raw_azimuth / LCD_HEADING_MULTIPLIER) < azimuth_starting_point){
-          debug.print(F("\tWARNING: raw azimuth is CCW of configured starting point of "));
-          debug.print(azimuth_starting_point);
-          debug.println("!");
-        }
-
-        if ((raw_azimuth / LCD_HEADING_MULTIPLIER) > (azimuth_starting_point+azimuth_rotation_capability)){
-          debug.print(F("\tWARNING: raw azimuth is CW of configured ending point of "));
-          debug.print((azimuth_starting_point+azimuth_rotation_capability),0);
-          debug.println("!");
-        }    
-
-        #if !defined(TEENSYDUINO)
-          void * HP = malloc(4);
-          if (HP) {free(HP);}
-          unsigned long free = (unsigned long)SP - (unsigned long)HP;
-          sprintf(tempstring,"%lu",(unsigned long)free);
-          if ((free < 500) || (free > 10000)){
-            debug.print(F("WARNING: Low memory: "));
-            debug.print(tempstring);
-            debug.println(F("b free"));
-          }
-        #endif
-
-
-        debug.println("\n\n\n");
-
-        last_debug_output_time = millis(); 
-
-      }
-    #endif // defined(FEATURE_REMOTE_UNIT_SLAVE) || defined(FEATURE_YAESU_EMULATION) || defined(FEATURE_EASYCOM_EMULATION)
-    
-  #endif //DEBUG_DUMP
-
-} /* output_debug */
 
 
 // --------------------------------------------------------------
