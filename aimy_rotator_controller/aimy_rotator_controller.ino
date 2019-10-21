@@ -417,23 +417,8 @@
 #include <avr/wdt.h>
 
 
-#include "rotator_hardware.h"
-
-#ifdef HARDWARE_EA4TX_ARS_USB
-  #include "rotator_features_ea4tx_ars_usb.h"
-#endif
-#ifdef HARDWARE_WB6KCN
-  #include "rotator_features_wb6kcn.h"
-#endif
-#ifdef HARDWARE_M0UPU
-  #include "rotator_features_m0upu.h"
-#endif
-#ifdef HARDWARE_TEST
-  #include "rotator_features_test.h"
-#endif    
-#if !defined(HARDWARE_CUSTOM)
-  #include "rotator_features.h" 
-#endif      
+#define SERIAL_PORT_CLASS HardwareSerial
+#include "rotator_features.h"      
   
 #include "rotator_dependencies.h"
 
